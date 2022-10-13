@@ -1,10 +1,15 @@
 from functools import reduce
 from logics.helpers import Card, filter_sequences, find_bigger, \
-    find_to_add, differ, cut_collection, finish_sequences, differ_two_hands, last_sequence_takes, after_take, \
-    clear_super_sequence
+    find_to_add, differ, cut_collection, finish_sequences, differ_two_hands, \
+    last_sequence_takes, after_take, clear_super_sequence
 
 
 class Sequence:
+    """
+    Объект класса при создании схраняет последнее положение в игре после
+    выполнения последней цепочки ходов. Цепочки достраиваются до достижения
+    нулевого результата (hand или known = пустой)
+    """
     def __init__(self, hand, known, sequence, reverse, deck=None):
         self.hand = hand
         self.known = known
@@ -15,12 +20,20 @@ class Sequence:
 
 
 def need_reverse(sequence):
+    """
+    Определяет нужно ли менять местами hand и known, что бы планировать
+    как оппонент будет ходить ко мне.
+    """
     if len(sequence) % 2 == 0:
         return False
     return True
 
 
 def is_winning(s_seq, defence=False):
+    """
+    Функция определяет чья рука в конечном счете осталась с картами, на основе
+    количества разворотов при построении цепочки до нулевого результата
+    """
     if defence:
         s_seq.hand, s_seq.known = s_seq.known, s_seq.hand
         s_seq.reverse_counter += 1
@@ -56,6 +69,21 @@ def is_winning(s_seq, defence=False):
 
 
 def make_choice(s_sequences, defence=False):
+    """
+    Делает выбор среди воображаемых вариантов, который пойдет в конечном счете
+    в реальную игру.
+    Делаем группы по начальным картам.
+
+    Ищем:
+    1. Группы, которые выигрывают во всех случаях
+    2. Группы, которые выигрывают в некоторых случаях:
+        а. Проигранные случаи являются ошибкой игрока
+        б. Проигранные случаи являются волевым решением оппонента
+    3. Группы, которые проигрывают во всех случаях
+
+    Выбираем лучшие варианты (1, 2а). Если их нет, тогда смотрим 2б.
+    Если их нет смотрим 3 (там где больше разворотов).
+    """
     stumps = []
     trees = {}
     black_trees = []
@@ -74,17 +102,21 @@ def make_choice(s_sequences, defence=False):
         tree = [k for k, v in trees.items() if v == stumps.index(i)]
 
         for branch in tree:
-            if is_winning(branch, defence):
+            if not is_winning(branch, defence):
                 wins += 1
+
         if wins == len(tree):
             # выдаем любую последовательность из списка, например первую
             return tree[0]
         elif wins == 0:
+            # оставим на потом, если ничего лучшего не будет
             black_trees.append(tree)
         else:
+            # деревья с которыми можно как проиграть, так и выиграть
             gray_trees.append(tree)
 
     if gray_trees:
+
         # находим ту, которая выигрывает
         for branch in gray_trees:
             # вытаскиваем выигрышные и не выигрышные
@@ -95,15 +127,16 @@ def make_choice(s_sequences, defence=False):
             for w in wins:
 
                 i = 1
-                # while i < len(w[0]) and w[0]:
                 while i < len(w[0].sequence):
-                    # если все плохие ветки отсеялись и осталась только хорошая ее и возвращаем
-                    if w[0].sequence and not w[1]:
+                    # если все плохие ветки отсеялись и осталась
+                    # только хорошая ее и возвращаем
+                    if len(w) == 1:
                         return w[0]
+
                     bean = []
                     for b in w[1]:
-                        # если наша плохая последовательность в позиции i все еще хороша
-                        # тогда мы добавим ее в корзину для следующих итераций
+                        # Если наша плохая последовательность в позиции i все еще хороша,
+                        # тогда мы добавим ее в корзину для следующих итераций,
                         # а если нет мы проверим кто инициатор ветки. Если это оппонент, выкидываем всю ветку.
                         if (isinstance(w[0].sequence[i], Card) and isinstance(b.sequence[i], Card)) \
                                 or (isinstance(w[0].sequence[i], str) and isinstance(b.sequence[i], str)):
@@ -151,38 +184,68 @@ def make_choice(s_sequences, defence=False):
         return result
 
 
-def super_sequence(hand, known, trump, defence=False, deck=None, table=None):
-    result = []
-    deck = deck if deck else []
-    sub_result = imagine_sequences(hand, known, trump) if not table else imagine_sequences(hand, known, trump, table[:])
-    reverse = 0
-    if defence:
-        hand, known = known, hand
-        reverse = -1
-    renewable, _result = make_sequence_objects(sub_result, hand, known, reverse, deck=deck, defence=defence)
+def super_sequence(
+        hand, known, trump, defence=False, deck=None, table=None, addons=None):
 
-    result += _result
-    sieve = renewable[:]
+    """
+    Соединяем короткие цепочки в длинные и создаем из них законченные объекты,
+    которые будут группироваться и оцениваться
+
+    param: addons необходим, в случае, функция вызвана во время подкидывания
+    дополнительны карт: Player.addons
+    """
+    result = []
+    if not addons:
+
+        # Создаем колоду и малую последовательность. После этого создаем объект
+        # Sequence и если он не законченный, отправляем его в сито
+        deck = deck if deck else []
+        sub_result = imagine_sequences(hand, known, trump) if not \
+            table else imagine_sequences(hand, known, trump, table[:])
+        reverse = 0
+        if defence:
+            hand, known = known, hand
+            reverse = -1
+        renewable, _result = make_sequence_objects(sub_result, hand, known,
+                                                   reverse, deck=deck,
+                                                   defence=defence)
+
+        result += _result
+        sieve = renewable[:]
+    else:
+        sieve = addons[0]
+        result = addons[1]
 
     while sieve:
-        print(len(sieve))
+        # Достраиваем наши Sequences объекты до достижения конечного результата
         renewable = []
         for sieve_item in sieve:
-            sub_result = imagine_sequences(sieve_item.hand, sieve_item.known, trump)
+            sub_result = imagine_sequences(sieve_item.hand,
+                                           sieve_item.known, trump)
 
-            renewable, _result = make_sequence_objects(sub_result, sieve_item.hand, sieve_item.known,
-                                                       sieve_item.reverse_counter, sieve_item.sequence,
-                                                       sieve_item.deck, defence=defence)
+            renewable, _result = make_sequence_objects(
+                sub_result, sieve_item.hand, sieve_item.known,
+                sieve_item.reverse_counter, sieve_item.sequence,
+                sieve_item.deck, defence=defence)
             result += _result
 
         sieve = renewable
-        if len(sieve) > 1000:
+
+        if len(sieve) > 150:
             break
 
     return make_choice(result, defence)
 
 
 def continue_sequence(hand, known, trump, collection=None):
+    """
+    Строим малые последовательности исходя из того, что мы знаем. Т.е. если
+    мы знаем только свои карты и у нас стол еще чисты, тогда набор
+    последовательностей будет состоять из каждой первой карты (в случае атаки)
+
+    В случае, когда на столе что-то есть делаем прибавляем пару к карте:
+    что можно добавить или чем можно побить.
+    """
     new = []
     # start sequencing in attack mode
     # Если нет коллекции или стола начинаем новую коллекцию, каждая карта в руке станет началом коллекции
@@ -290,6 +353,10 @@ def continue_sequence(hand, known, trump, collection=None):
 
 
 def seq_compose(func):
+    """
+    Здесь мы многократно прокручиваем логику continue_sequence, что бы
+    наплодить все возможные варианты развития игры
+    """
     def wrapper(*args):
 
         sub_result = []
@@ -326,6 +393,9 @@ def seq_compose(func):
 
 @seq_compose
 def imagine_sequences(hand, known, trump, collection=None):
+    """
+    Обертка для continue sequence
+    """
     if not collection:
         return continue_sequence(hand, known, trump)
 
@@ -337,23 +407,17 @@ def imagine_sequences(hand, known, trump, collection=None):
 
 
 def sum_cards(cards):
+    """ Посчитываем сумму значений в наборе карт"""
     cards = [card.value for card in cards]
     return reduce(lambda x, y: x + y, cards)
 
 
 # разложение вариантов карт по рукам
 def decompose(hand, known, other_qty, deck):
-    # _unknown = []
-    # _deck = deck.copy()
-    # _hand = hand.copy()
-    # _known = known.copy()
-    # unknown_len = other_qty - len(_known)
-    # if unknown_len:
-    #     _unknown = _deck[:unknown_len + 1:-1]
-    # # if other_qty > len(_known):
-    # #     _unknown = _deck[:-(other_qty - len(known)):-1]
-    # if _unknown:
-    #     _deck = differ(_deck, _unknown)
+    """
+    Разворачиваем положение и наличие карт в игре для возможности выбора
+    наилучшего варианта.
+    """
     _unknown = []
     _deck = deck.copy()
     _hand = hand.copy()
@@ -367,6 +431,11 @@ def decompose(hand, known, other_qty, deck):
 
 
 def give_cards(hand, deck, side=0):
+    """
+    Т.к. частью идеи выбора стратегии в игре является способ min-max, то эта
+    реализация раздачи карт раздает карты в мнимые руки с разных сторон.
+    Мы предполагаем что нам достанутся карты плохие, а противнику хорошие
+    """
     cards_in_hand = len(hand)
     if side == 0:
         if cards_in_hand < 6:
@@ -387,37 +456,33 @@ def give_cards(hand, deck, side=0):
     return hand, deck
 
 
-# def amount(hand, other_cards, deck, sequence=None):
 def amount(hand, other_cards, deck, sequence=None):
-    if not sequence:
-        sequence = []
-    if sequence and not isinstance(sequence[-1], Card):
-        sequence = sequence[:-1]
-
-    # if not other_cards:
-    #     return -5
-
+    # if not sequence:
+    #     sequence = []
+    # if sequence and not isinstance(sequence[-1], Card):
+    #     sequence = sequence[:-1]
+    #
+    # # if not other_cards:
+    # #     return -5
+    """
+    Считаем удельную стоимость руки
+    """
     hand_amount = sum_cards(hand) if hand else 0
     other_amount = sum_cards(other_cards) if other_cards else 0
     deck_amount = sum_cards(deck) if deck else 0
-    deck_with_hand = deck_amount + hand_amount
     deck_with_others = deck_amount + other_amount
     hand_len = len(hand)
-    other_len = len(other_cards)
-    hand_specific_amount = (hand_amount / deck_with_others / hand_len) / -1 if deck_with_others != 0 and hand_len != 0 \
-        else 0
-
-    # hand_specific_amount = hand_amount / deck_with_others / hand_len if deck_with_others != 0 and hand_len != 0 else 0
-    # other_specific_amount = other_amount / deck_with_hand / other_len if deck_with_hand != 0 and other_len != 0 else 0
-    # specific_amounts_difference = other_specific_amount - hand_specific_amount
+    hand_specific_amount = (hand_amount / deck_with_others / hand_len) / -1 \
+        if deck_with_others != 0 and hand_len != 0 else 0
 
     return hand_specific_amount
 
-    # cards_amount = sum_cards(deck + hand + other_cards + sequence)
-    # return (hand_amount / cards_amount) / len(hand) - (other_amount / cards_amount) / len(other_cards)
-
 
 def discards(hand, known, unknown, deck, sequence, defence=False):
+    """
+    Посчитываем результат при принятии решения на отбой. Т.е. нужно ли
+    продолжать следовать цепочке по всей длине, или выгодно выйти раньше
+    """
     hand = differ(hand, sequence)
     known_len = len(known)
     if known:
@@ -438,8 +503,8 @@ def discards(hand, known, unknown, deck, sequence, defence=False):
 
 def take(hand, known, unknown, deck, sequence, alt=None):
     """
-    Функция считает для обороны, нужно ли игроку остановиться и взять карты себе, даже если есть
-    возможность отбиваться дальше
+    Посчитываем результат при принятии решения на взятие. Т.е. нужно ли
+    продолжать следовать цепочке по всей длине, или выгодно выйти раньше
     """
     if hand:
         hand = differ(hand, sequence)
@@ -467,6 +532,9 @@ def take(hand, known, unknown, deck, sequence, alt=None):
 
 # added param len_table for second valuate try
 def valuate(sequences, hand, known, deck, other_qty, len_table=0, attack=True):
+    """
+    Ищем лучший вариант хода. По признаку наименьшего значения
+    """
     # если у нас всего 1 последовательность в коллекции, тогда считать не нужно.
     if len(sequences) == 1:
         return sequences[0]
@@ -482,20 +550,29 @@ def valuate(sequences, hand, known, deck, other_qty, len_table=0, attack=True):
 
             if attack:
 
-                # если окончание пары = карта или (не карта, но есть неизвестные, проверяем стоимость)
-                if isinstance(sequence[:i + 2][-1], Card) or (not isinstance(sequence[:i + 2][-1], Card) and _unknown):
-                    _seq, stop = sequence[:i + 2], discards(_hand, _known, _unknown, _deck, sequence[:i + 2])
+                # если окончание пары = карта или (не карта, но есть
+                # неизвестные, проверяем стоимость)
+                if isinstance(sequence[:i + 2][-1], Card) or (not isinstance(
+                        sequence[:i + 2][-1], Card) and _unknown):
+                    _seq, stop = sequence[:i + 2], discards(
+                        _hand, _known, _unknown, _deck, sequence[:i + 2])
 
                 if not isinstance(sequence[:i + 2][-1], Card) and not _unknown:
-                    # проверяем если оппонент прервет последовательность взяв карты со стола себе.
+                    # проверяем если оппонент прервет последовательность
+                    # взяв карты со стола себе.
+
                     # _hand, _known -> _known, _hand as parameters
-                    stop = take(_known, _hand, _unknown, _deck, sequence[:i + 2], alt=1)
+                    stop = take(
+                        _known, _hand, _unknown, _deck, sequence[:i + 2], alt=1)
                     _seq = sequence[:i + 1]
 
             else:
                 if isinstance(sequence[:i + 2][-1], Card):
-                    continue_val = discards(_hand, _known, _unknown, _deck, sequence[:i + 2], defence=True)
-                    alt_take_val = take(_hand, _known, _unknown, _deck, sequence[:i + 1])
+                    continue_val = discards(
+                        _hand, _known, _unknown, _deck,
+                        sequence[:i + 2], defence=True)
+                    alt_take_val = take(_hand, _known, _unknown,
+                                        _deck, sequence[:i + 1])
                     if continue_val <= alt_take_val:
                         _seq, stop = sequence[:i + 2], continue_val
 
@@ -504,26 +581,30 @@ def valuate(sequences, hand, known, deck, other_qty, len_table=0, attack=True):
 
                 else:
                     if _hand and sequence[:i]:
-                        _seq, stop = sequence[:i], take(_hand, _known, _unknown, _deck, sequence[:i])
+                        _seq, stop = sequence[:i], take(
+                            _hand, _known, _unknown, _deck, sequence[:i])
 
             if stop < result['stop']:
                 result['sequence'], result['stop'] = _seq, stop
 
     if result['sequence'] and isinstance(result['sequence'][-1], Card):
         result['sequence'].append('0')
+
     return result['sequence']
 
 
 def follower(sequence, table):
-    # если есть стол смотрим последнюю карту на столе если она равна соответствующей карте в
-    # последовательности отдаем следующую карту из запланированной последовательности.
-    # если не соответствует карта на столе, значит планы должны поменяться, тогда возвращаем False
+    """
+    Проверяем соответствие карт на столе и нашего плана, если соответсвует
+    возвращаем карту, если нет возвращаем bool
+    """
     if not table:
         return sequence[0]
     next_idx = len(table)
-
-    if isinstance(sequence[next_idx - 1], Card) and table[-1] == sequence[next_idx - 1]:
-        return sequence[next_idx]
+    if next_idx <= len(sequence):
+        if isinstance(sequence[next_idx - 1], Card) \
+                and table[-1] == sequence[next_idx - 1]:
+            return sequence[next_idx]
 
     return False
 
@@ -531,14 +612,17 @@ def follower(sequence, table):
 # self.hand, self.known, self.deck, self.opp_cards_qty, cards
 def valuate_addons(hand, known, deck, opp_cards_qty, addons, table):
     _hand, _known, _unknown, _deck = decompose(hand, known, opp_cards_qty, deck)
-
+    """
+    Тоже что valuate, только на случай подбрасывания
+    """
     while len(_hand) < 6 and _deck:
         _hand.append(_deck.pop(0))
     other_cards = _known + table + _unknown
     result = [], amount(_hand, other_cards, _deck)
 
     for item in addons[1:]:
-        _hand, _known, _unknown, _deck = decompose(hand, known, opp_cards_qty, deck)
+        _hand, _known, _unknown, _deck = decompose(
+            hand, known, opp_cards_qty, deck)
         _hand = differ(_hand, item)
         while len(_hand) < 6 and _deck:
             _hand.append(_deck.pop(0))
@@ -550,48 +634,47 @@ def valuate_addons(hand, known, deck, opp_cards_qty, addons, table):
     return result[0]
 
 
-def super_follower(s_sequence, stop, hand, known, defence=False):
-    # в follower нужно передать текущий кусок от super_sequence
-
-    if stop != 0:
+def super_follower(s_sequence, hand, known, defence=False):
+    """
+    Следуем за большой последовательностью, отрезаем начало по мере развития.
+    Режем от 0-го элемента до первой 'f'
+    """
+    stop = 0
+    for item in s_sequence.sequence:
         stop += 1
-
-    begin = stop
-    for item in s_sequence.sequence[begin:]:
-        stop += 1
-        # if not isinstance(item, Card) or item == 'a':
-        if not isinstance(item, Card):
+        if isinstance(item, str) and item == 'f':
             break
 
-    # TODO Проверка на то, что мы можем продолжать последовательности
-    filtered = [card for card in s_sequence.sequence[begin:stop] if isinstance(card, Card)]
-    card_to_check = filtered[1] if defence else filtered[0]
+    if len(s_sequence.sequence) <= 1:
+        return s_sequence.sequence, s_sequence
 
-    if card_to_check in hand:
-        not_in_hand = [card for card in filtered[::2] if card not in hand]
-        not_in_known = [card for card in filtered[1::2] if card not in known]
-    else:
-        not_in_hand = [card for card in filtered[1::2] if card not in hand]
-        not_in_known = [card for card in filtered[::2] if card not in known]
+    # filtered = [card for card in s_sequence.sequence[:stop]
+    #             if isinstance(card, Card)]
+    lim_sequence = s_sequence.sequence[:stop]
+    s_sequence.sequence = s_sequence.sequence[stop:]
+    if not s_sequence.sequence:
+        s_sequence.sequence = lim_sequence
 
-    if not_in_hand or not_in_known:
-        return None, 0
-
-    return s_sequence.sequence[begin-1:stop], stop
+    return lim_sequence, s_sequence
 
 
 def zone_control(sequence, defence):
+    """
+    Показывает руку, из которой пришла та или иная карта в большой
+    последовательности
+    """
     zeros = 0
     zero_indexes = []
     player_control = 0
-    # находим все потенциальные точки разворота хода
+    # Находим все потенциальные точки разворота хода
     j = 0
     for item in sequence:
         if not isinstance(item, Card):
             zeros += 1
             zero_indexes.append(j)
         j += 1
-    # если точек разворота нет считаем по длине последовательности False - это карта оппонента
+    # Если точек разворота нет считаем по длине последовательности
+    # False - это карта оппонента
     if zeros == 0:
         if len(sequence) % 2 == defence:
             return False
@@ -605,10 +688,12 @@ def zone_control(sequence, defence):
     z_idx = zero_indexes[0]
     if zeros > 0 and len(sequence[:z_idx]) % 2 == 0:
         player_control += 1
-    # меняем defence flag, если сумма разворота поменяла роли в конце последовательностей
+    # меняем defence flag, если сумма разворота поменяла роли в
+    # конце последовательностей
     if player_control % 2 != 0:
         defence = not defence
-    # проверяем чья карта последняя в последовательности, где False - это карта оппонента
+    # проверяем чья карта последняя в последовательности,
+    # где False - это карта оппонента
     z_idx = zero_indexes[-1]
     if len(sequence[z_idx:-1]) % 2 == defence:
         return False
@@ -616,15 +701,22 @@ def zone_control(sequence, defence):
     return True
 
 
-def make_sequence_objects(sub_result, hand, known, reverse, s_seq=None, deck=None, defence=False):
+def make_sequence_objects(sub_result, hand, known, reverse, s_seq=None,
+                          deck=None, defence=False):
+    """
+    Создает объект большой последовательности и показывает состояние игры
+    в конце последовательности
+    """
     result = []
     newborn = []
     s_seq = s_seq if s_seq else []
     deck = deck if deck else []
     for s in sub_result:
-        if len(s) // 2 > len(known):
-            s = s[:-1]
-            s[-1] = '0'
+
+        # if len(s) // 2 > len(known):
+        #     s = s[:-1]
+        #     s[-1] = '0'
+
         _hand, _known = differ_two_hands(hand, known, s)
         last = last_sequence_takes(s)
         if last[0]:
@@ -637,27 +729,52 @@ def make_sequence_objects(sub_result, hand, known, reverse, s_seq=None, deck=Non
                 new[-1] = 'f'
                 newborn.append(Sequence(_hand, _known, s_seq[:], reverse, deck))
                 newborn[-1].sequence += new
-                newborn[-1].hand, newborn[-1].known = differ_two_hands(newborn[-1].hand, newborn[-1].known, s + new)
+                newborn[-1].hand, newborn[-1].known = differ_two_hands(
+                    newborn[-1].hand, newborn[-1].known, s + new)
 
                 if newborn[-1].deck:
-                    newborn[-1].hand, newborn[-1].deck = give_cards(newborn[-1].hand, newborn[-1].deck)
+                    newborn[-1].hand, newborn[-1].deck = give_cards(
+                        newborn[-1].hand, newborn[-1].deck)
                 newborn[-1].known += clear_super_sequence(new)
 
         else:
             new = s[:]
             new[-1] = 'f'
-            newborn.append(Sequence(_hand, _known, s_seq[:], reverse, deck))
+            newborn.append(Sequence(_hand, _known, s_seq[:], reverse, deck[:]))
             newborn[-1].sequence += new
             newborn[-1].reverse_counter += 1
 
             if newborn[-1].deck:
-                newborn[-1].hand, newborn[-1].deck = give_cards(newborn[-1].hand, newborn[-1].deck)
+                newborn[-1].hand, newborn[-1].deck = give_cards(
+                    newborn[-1].hand, newborn[-1].deck)
+
                 if newborn[-1].deck:
-                    newborn[-1].known, newborn[-1].deck = give_cards(newborn[-1].known, newborn[-1].deck)
-            newborn[-1].hand, newborn[-1].known = newborn[-1].known, newborn[-1].hand
+                    newborn[-1].known, newborn[-1].deck = give_cards(
+                        newborn[-1].known, newborn[-1].deck)
+
+            newborn[-1].hand, newborn[-1].known \
+                = newborn[-1].known, newborn[-1].hand
 
         if (not newborn[-1].hand or not newborn[-1].known) and not newborn[-1].deck:
             newborn[-1].is_winning = is_winning(newborn[-1], defence)
             result.append(newborn.pop(-1))
 
     return newborn, result
+
+
+def addons_in_super(hand, known, table):
+    """
+    Не пригодилось ))
+    """
+
+    to_add = after_take(hand, known, table)
+    table[-1] = 'a'
+    result = []
+    for item in to_add:
+        points = ['a' for i in item]
+        points[-1] = 'f'
+        addons = [j for i in zip(item, points) for j in i]
+        result.append(table + addons)
+
+    return result
+
