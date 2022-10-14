@@ -73,7 +73,9 @@ def turn_result(_queue):
         # очищаем стол
         on_table.clear()
         return new_queue
+
     if result == 'take':
+
         # проверяем, все-ли прошло так, как планировалось
         _queue[0].behavior_check(on_table)
         # проверяем если нападавший игрок хочет добавить карт
@@ -124,8 +126,8 @@ make_trumps(deck, trump)
 deck_to_remember = sorted(deck)
 deck_to_remember.append(deck_to_remember.pop(deck_to_remember.index(trump)))
 
-player1 = Human('Human', deck[0:11:2], trump)
-# player1 = Player('Player1', deck[0:11:2], trump, deck_to_remember)
+# player1 = Human('Human', deck[0:11:2], trump)
+player1 = Player('Player1', deck[0:11:2], trump, deck_to_remember)
 player2 = Player('Player2', deck[1:12:2], trump, deck_to_remember)
 print(id(player1.hand), player1.hand, id(player2.hand), player2.hand)
 del deck[0:12]

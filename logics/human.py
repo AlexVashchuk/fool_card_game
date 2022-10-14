@@ -156,19 +156,9 @@ class Human:
 
     def behavior_check(self, table):
         """Заглушка для механизма"""
-        return
+        return None
 
     def make_turn(self, table, defence=False):
         if defence:
             return self.defence(table)
         return self.attack(table)
-
-
-def test():
-    table = 1
-    qty = 2
-    choose_card(qty, table)
-
-
-if __name__ == '__main__':
-    test()

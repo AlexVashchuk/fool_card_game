@@ -19,16 +19,6 @@ class Sequence:
         self.is_winning = None
 
 
-def need_reverse(sequence):
-    """
-    Определяет нужно ли менять местами hand и known, что бы планировать
-    как оппонент будет ходить ко мне.
-    """
-    if len(sequence) % 2 == 0:
-        return False
-    return True
-
-
 def is_winning(s_seq, defence=False):
     """
     Функция определяет чья рука в конечном счете осталась с картами, на основе
@@ -457,13 +447,6 @@ def give_cards(hand, deck, side=0):
 
 
 def amount(hand, other_cards, deck, sequence=None):
-    # if not sequence:
-    #     sequence = []
-    # if sequence and not isinstance(sequence[-1], Card):
-    #     sequence = sequence[:-1]
-    #
-    # # if not other_cards:
-    # #     return -5
     """
     Считаем удельную стоимость руки
     """
@@ -761,20 +744,4 @@ def make_sequence_objects(sub_result, hand, known, reverse, s_seq=None,
 
     return newborn, result
 
-
-def addons_in_super(hand, known, table):
-    """
-    Не пригодилось ))
-    """
-
-    to_add = after_take(hand, known, table)
-    table[-1] = 'a'
-    result = []
-    for item in to_add:
-        points = ['a' for i in item]
-        points[-1] = 'f'
-        addons = [j for i in zip(item, points) for j in i]
-        result.append(table + addons)
-
-    return result
 

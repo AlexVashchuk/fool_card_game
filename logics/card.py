@@ -46,26 +46,3 @@ class Card:
     def greater(self, other_card):
         return self.value > other_card.value
 
-
-def go_test():
-    # Создадим несколько карт
-    card1 = Card(10, "Hearts")
-    card2 = Card(14, "Diamonds")
-    card3 = Card(11, "Hearts")
-    cards = [card1, card2, card3]
-
-    # проверим методы класса
-    print(card1)
-    print(card2)
-    print(card3)
-    print(card1 > card2)
-    print(card1 == card3)
-    print(card1 < card3)
-    print(card3 < card1)
-    print(card1 != card2)
-    print(card1 != card3)
-    print(cards)
-
-
-if __name__ == '__main__':
-    go_test()
