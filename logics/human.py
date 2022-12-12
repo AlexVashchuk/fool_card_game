@@ -75,6 +75,7 @@ class Human:
         return False
 
     def attack(self, table): # cli version
+        """Cli version"""
         if table:
             self.opp_cards_qty -= 1
         show_table(self.opp_cards_qty, table, self.real_deck, self.trump, self.hand)
@@ -131,6 +132,7 @@ class Human:
         return True
         
     def defence(self, table): # cli version
+        """Cli version"""
         self.opp_cards_qty -= 1
         show_table(
             self.opp_cards_qty, table, self.real_deck, self.trump, self.hand)

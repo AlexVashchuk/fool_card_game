@@ -33,7 +33,6 @@ class Card:
     def __ne__(self, other_card):
         return self.suit != other_card.suit
 
-    # Сравниваем только методой больше, т.к. одинаковых карт нет, а другой результат вернет False
     def __gt__(self, other_card):
         return self.value > other_card.value
 

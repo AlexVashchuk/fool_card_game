@@ -11,7 +11,6 @@ const behavior = function () {
 }
 
 const asyncPostCall = async (payload) => {
-    // document.getElementById("sortCards").setAttribute('disabled', '')
     Array.from(document.getElementsByClassName("btn")).forEach(elem => { elem.setAttribute('disabled', '') })
     try {
         const response = await fetch(url, {
@@ -23,12 +22,9 @@ const asyncPostCall = async (payload) => {
             body: JSON.stringify({"data": payload})
         });
         const res = await response.json();
-        // data handler here
         renderData(res)
-        // document.getElementById("sortCards").removeAttribute('disabled')
     }
     catch(error) {
-        // document.getElementById("sortCards").removeAttribute('disabled')
         console.log(error)
     }
     Array.from(document.getElementsByClassName("btn")).forEach(elem => { elem.removeAttribute('disabled') })
@@ -44,7 +40,6 @@ const makeAddons = function(card) {
         document.getElementById(card).removeAttribute("class");
         cards.splice(index, 1)
     }
-    console.log(cards)
 }
 
 const cardClick = function (clickedId) {
@@ -64,21 +59,6 @@ const buttonClick = function (action) {
         asyncPostCall(JSON.stringify(cards))
     }
 }
-
-const logData = function (res) {
-    console.log('##### income data ########')
-    console.log('######## BEGIN ###########')
-    !!res.message && console.log(res.message)
-    !!res.playerCards && console.log('player', res.playerCards,     Array.isArray(res.playerCards))
-    !!res.opponentCards && console.log('opponent cards qty', res.opponentCards)
-    !res.clearTable && console.log('clear table = false')
-    !!res.clearTable && console.log('clear table = true')
-    !!res.toTable && console.log('res.toTable', res.toTable, Array.isArray(res.toTable))
-    !!res.fromFront && console.log('from front = true')
-    !res.fromFront && console.log('from front = false')
-    !!res.lastCard && console.log('last card', res.lastCard, Array.isArray(res.lastCard))
-    console.log('###### END DATA ##########')
-}
   
 const renderData = function (res) {
 
@@ -86,10 +66,7 @@ const renderData = function (res) {
         return renderMessage(res.message)}
     renderMessage(res.message)
     
-    // !!('winner' in res) && endGame(res)
-    console.log(res.winner)
     if ('winner' in res) { endGame(res)}
-
 
     if (Array.isArray(res.toTable) && res.toTable.length === 2) {
          renderToTable(res.toTable)} // две карты на стол
@@ -171,7 +148,7 @@ const renderToTable = function (toTable) {
         queue = ['first', 'firstComp']
         shift = 1
     } 
-    console.log(toTable)
+
     toTable.forEach(element => {
         li = document.createElement("li")
         image = new Image()
