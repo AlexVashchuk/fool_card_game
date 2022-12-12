@@ -163,10 +163,10 @@ class Player:
         """
         # Инициализируем данные для проверки, если вдруг у оппонента нет карт
         check, response = defence_wins, 'discards'
-        args = self.real_deck, self.hand, self.opp_cards_qty
         if defence:
             check, response = attack_wins, 'take'
-            args = self.real_deck, self.opp_cards_qty
+        if check:
+            return response
 
         # если начало розыгрыша, удаляем карты в руках из мнимой колоды
         if not table and not defence:
@@ -192,10 +192,6 @@ class Player:
             self.known, self.deck, self.deck2known = deck2known(
                 self.real_deck, self.known, self.deck
             )
-
-        # Проверка оппонента на выигрыш
-        if check(*args):
-            return response
 
         # Точка входа в режим долгой последовательности
         if enter2super(

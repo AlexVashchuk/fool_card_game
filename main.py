@@ -1,3 +1,7 @@
+"""
+Cli version of game
+"""
+
 from logics.card import Card
 from logics.player import Player
 from logics.human import Human

@@ -1,0 +1,46 @@
+ul.hand {
+  margin: 0;
+  padding: 4px;
+  width: 100%;
+  float: left;
+}
+
+ul.other {
+  margin: 0;
+  padding: 4px;
+  width: 100%;
+  float: left;
+}
+
+ul.hand li {
+  display: inline; /* Отображать как строчный элемент */
+  margin-right: 5px; /* Отступ слева */
+  border: 1px solid #000; /* Рамка вокруг текста */
+  padding: 3px; /* Поля вокруг текста */
+  float: left;
+}
+
+ul.table{
+  margin: 0;
+  padding: 4px;
+  width: 100%;
+  float: left;
+}
+ul.table li {
+  display: inline; /* Отображать как строчный элемент */
+  margin-right: 5px; /* Отступ слева */
+  border: 1px solid #000; /* Рамка вокруг текста */
+  padding: 3px; /* Поля вокруг текста */
+  float: left;
+}
+ul.addons{
+    margin: 0;
+    padding: 4px;
+    width: 100%;
+    float: left;
+}
+
+.desk {
+  margin: 0;
+  padding: 4px;
+}

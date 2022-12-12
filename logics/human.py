@@ -112,6 +112,9 @@ class Human:
                 return 'take'
 
         return self.hand.pop(chosen - 1)
+    
+    def await_defence_turn(self, table):
+        pass
 
     def addons(self, table):
         show_table(

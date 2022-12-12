@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+    <link rel="stylesheet" href="/static/styles.css">
+    
+    <title>Let's play</title>
+</head>
+<body>
+
+    <div class="desk">
+
+        <!--Карты оппонента-->
+        <div class="cards">
+            <ul class="hand">
+            {% for card in range(opponent_cards) %}
+                <li class="shirt">
+                    <div class="view back-view">
+                        <img src="static/images/single.png">
+                    </div>
+                </li>
+            {% endfor %}
+            </ul>
+        </div>
+
+        <!--Карты на столе-->
+        <div class="cards">
+            <ul id="table" class="table">
+            {% for card in table %}
+                <li class="card">
+                    <img src="static/images/{{ card }}">
+                </li>
+            {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Козырь и колода -->
+        <ul class="cards">
+            <li class="card">
+                <img src="static/images/{{ trump }}">
+            </li>
+            <li class="card">
+                <img src="static/images/coloda.png">
+            </li>
+        </ul>
+
+        <!-- Карты в руке -->
+        <div class="cards">
+            <ul class="hand" id="hand">
+            {% for card in player_cards %}
+                <li class="card">
+                    <img id="{{ card }}" onclick="cardClick(this.id)" src="static/images/{{card}}" class="card">
+                </li>
+            {% endfor %}
+            </ul>
+
+            <button id="{{ action_text }}" class="btn" onclick="buttonClick(this.id)">{{ action_text }}</button>
+            <p id="message">{{ message }}</p>
+        </div>
+
+    </div>
+
+<script src="/static/main.js"></script>
+</body>
+</html>
