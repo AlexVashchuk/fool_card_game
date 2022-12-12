@@ -240,3 +240,9 @@ def enter2super(hand, known, opp_qty, deck, defence):
             return True
 
     return False
+
+##################### for front end ###########################33
+
+def to_JSON(o):
+    if isinstance(o, Card):
+        return f""

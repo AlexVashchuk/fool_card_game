@@ -45,4 +45,3 @@ class Card:
 
     def greater(self, other_card):
         return self.value > other_card.value
-

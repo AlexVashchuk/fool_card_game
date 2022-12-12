@@ -9,57 +9,97 @@
     <title>Let's play</title>
 </head>
 <body>
-
     <div class="desk">
+        <table width="100%" cellspacing="0" cellpadding="5">
 
-        <!--Карты оппонента-->
-        <div class="cards">
-            <ul class="hand">
-            {% for card in range(opponent_cards) %}
-                <li class="shirt">
-                    <div class="view back-view">
-                        <img src="static/images/single.png">
+            <tr>
+                <td width="85%">
+                    <!--Карты оппонента-->
+                    <div class="cards">
+                        <ul id="opponent" class="opponent">
+                            {% for card in range(opponentCards) %}
+                            <li class="opp">
+                                <img src="static/images/single.png" class="shirt">
+                            </li>
+                            {% endfor %}
+                        </ul>
                     </div>
-                </li>
-            {% endfor %}
-            </ul>
-        </div>
+                </td>
+                <td width="15%"></td>
+            </tr>
 
-        <!--Карты на столе-->
-        <div class="cards">
-            <ul id="table" class="table">
-            {% for card in table %}
-                <li class="card">
-                    <img src="static/images/{{ card }}">
-                </li>
-            {% endfor %}
-            </ul>
-        </div>
+            <tr>
+                <td width="85%">
+                    <div class="cards">
+                        <ul id="table" class="table">
+                            {% for card in table %}
+                            <li>
+                                <img id="{{ card }}" class="{{ loop.cycle('first', firstSecond) }}" src="static/images/{{ card }}">
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </td>
+                <td width="15%">
+                    <!-- Козырь и колода -->
+                    {% if lenDeck > 1 %}
+                    <ul id="deck" class="opponent">
+                        <li>
+                            <img id="{{ idTrump }}" class="bck-grnd" src="static/images/{{ trumpSuit }}.png">
+                        </li>
+                        <li class="opp">
+                            <img id="trump" src="static/images/{{ trump }}">
+                        </li>
+                        {% for i in range(lenDeck-1) %}
+                        <li class="dck">
+                            <img src="static/images/single.png" class="shirt">
+                        </li>
+                        {% endfor %}
+                    </ul> 
+                    {% endif %}
+                    {% if lenDeck == 1 %}
+                    <ul class="opponent">
+                        <li>
+                            <img id="{{ idTrump }}" class="bck-grnd" src="static/images/{{ trumpSuit }}.png">
+                        </li>
+                        <li class="opp">
+                            <img id="trump" src="static/images/{{ trump }}">
+                        </li>
+                    </ul>
+                    {% endif %}
+                    {% if lenDeck == 0 %}
 
-        <!-- Козырь и колода -->
-        <ul class="cards">
-            <li class="card">
-                <img src="static/images/{{ trump }}">
-            </li>
-            <li class="card">
-                <img src="static/images/coloda.png">
-            </li>
-        </ul>
+                    {% endif %}                
+                </td>
+            </tr>
+            
+            <tr>
+                <td width="85%">
+                    <!-- Карты в руке -->
+                    <div class="cards">
+                        <ul class="hand" id="hand">
+                        {% for card in playerCards %}
+                            <li class="cardInHand">
+                                <img id="{{ card }}" onclick="cardClick(this.id)" src="static/images/{{card}}" class="card">
+                            </li>
+                        {% endfor %}
+                        </ul>
+                    </div>
+                    <div>
+                        <button id="{{ actionText }}" class="btn" onclick="buttonClick(this.id)">{{ actionText }}</button>
+                        <button id="sortCards" class="btn" onclick="sortHand()">Sort Cards</button>
 
-        <!-- Карты в руке -->
-        <div class="cards">
-            <ul class="hand" id="hand">
-            {% for card in player_cards %}
-                <li class="card">
-                    <img id="{{ card }}" onclick="cardClick(this.id)" src="static/images/{{card}}" class="card">
-                </li>
-            {% endfor %}
-            </ul>
-
-            <button id="{{ action_text }}" class="btn" onclick="buttonClick(this.id)">{{ action_text }}</button>
-            <p id="message">{{ message }}</p>
-        </div>
-
+                    </div>                    
+                    <div>
+                        <p id="message">{{ message }}</p>
+                    </div>
+                </td>
+                <td width="15%">
+                    <!-- New game button -->
+                    <button id="new_game" class="newGame" onclick="newGame()">Start a new Game</button>
+                </td>
+            </tr>
+        </table>
     </div>
 
 <script src="/static/main.js"></script>

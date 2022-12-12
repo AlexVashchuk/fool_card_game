@@ -1,46 +1,41 @@
-ul.hand {
-  margin: 0;
-  padding: 4px;
-  width: 100%;
-  float: left;
-}
-
-ul.other {
-  margin: 0;
-  padding: 4px;
-  width: 100%;
-  float: left;
-}
-
-ul.hand li {
-  display: inline; /* Отображать как строчный элемент */
-  margin-right: 5px; /* Отступ слева */
-  border: 1px solid #000; /* Рамка вокруг текста */
-  padding: 3px; /* Поля вокруг текста */
-  float: left;
-}
-
-ul.table{
-  margin: 0;
-  padding: 4px;
-  width: 100%;
-  float: left;
-}
-ul.table li {
-  display: inline; /* Отображать как строчный элемент */
-  margin-right: 5px; /* Отступ слева */
-  border: 1px solid #000; /* Рамка вокруг текста */
-  padding: 3px; /* Поля вокруг текста */
-  float: left;
-}
-ul.addons{
-    margin: 0;
-    padding: 4px;
-    width: 100%;
-    float: left;
-}
+body { background-color: green;}
 
 .desk {
   margin: 0;
+  max-width: 800px;
   padding: 4px;
+  background-color: green;
+  color: white
 }
+
+li { list-style-type: none; width: 55px; }
+IMG { position: relative; }
+.cards { text-align: center; }
+
+/* trump + deck */
+.bck-grnd { z-index: 0; position: relative; height: 50px;  left: 60px; }
+#trump { transform: rotate(90deg); z-index: 2;}
+#deck { left: -55px; z-index: 1;}
+.dck { width: 1.5px; z-index: 3; }
+
+/* Opponent hand */
+.opponent { display: inline-flex; }
+.opp { width: 22px; }
+
+/* Cards on table */
+.table { display: inline-flex; }
+.start .firstComp .secondComp { width: 22px; }
+.firstComp { left: -35px; top: 15px; }
+.secondComp {   left: -35px; top: -15px; }
+
+
+li.card { display: inline-flex; width: 90px; }
+li.first { display: inline-flex; width: 22px; }
+
+.card IMG { position: relative }
+.chosen { top: -15px; }
+
+.cardInHand { display: inline-flex; width: 22px; }
+#sortCards { visibility: visible; }
+.newGame { position: relative; float: right}
+#deck {position: relative; right: 45px; text-align: left;}

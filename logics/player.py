@@ -51,10 +51,14 @@ class Player:
                 self.hand, self.known, self.deck, self.opp_cards_qty, cards,
                 table
             )
+            self.limited_sequence = []
+            if cards:
+                self.hand = differ(self.hand, cards)
+            return cards
 
         # Игра уже находится в режиме длинной последовательности, но оппонент
         # перестал отбиваться раньше чем планировалось, поэтому здесь мы
-        # начинаем генерировать объекты длинных последовательностей по новой
+        # начинаем генерировать объекты длинных последовательностей заново
         if isinstance(self.super, str):
 
             if not self.limited_sequence:
@@ -98,7 +102,7 @@ class Player:
                     cards = []
 
         # Если есть карты, чтобы отдать - убираем их из руки.
-        # Обнуляем короткую последоательность. Возвращаем карты.
+        # Обнуляем короткую последовательность. Возвращаем карты.
         if cards:
             self.hand = differ(self.hand, cards)
         self.limited_sequence = []
@@ -162,17 +166,15 @@ class Player:
         Функция кладет карту на стол в соответвии с планом либо его отсутствием.
         """
         # Инициализируем данные для проверки, если вдруг у оппонента нет карт
+        # Инструкции ниже нужны для работы в консольной версии
         check, response = defence_wins, 'discards'
+        args = self.real_deck, self.hand, self.opp_cards_qty
         if defence:
             check, response = attack_wins, 'take'
-        if check:
-            return response
+            args = self.real_deck, self.opp_cards_qty
 
         # если начало розыгрыша, удаляем карты в руках из мнимой колоды
-        if not table and not defence:
-            self.deck = differ(self.deck,
-                               self.hand) if self.deck else self.deck
-        if len(table) == 1 and defence:
+        if not table or len(table) == 1:
             self.deck = differ(self.deck,
                                self.hand) if self.deck else self.deck
 
@@ -192,6 +194,10 @@ class Player:
             self.known, self.deck, self.deck2known = deck2known(
                 self.real_deck, self.known, self.deck
             )
+
+        # Проверка оппонента на выигрыш в консольной версии
+        if check(*args):
+            return response
 
         # Точка входа в режим долгой последовательности
         if enter2super(

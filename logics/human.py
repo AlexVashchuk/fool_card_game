@@ -56,6 +56,7 @@ def show_table(opp_qty, table, deck, trump, hand):
 
 class Human:
     def __init__(self, name, hand, trump):
+        self.endpoint = None
         self.name = name
         self.hand = hand
         self.trump = trump
@@ -73,7 +74,7 @@ class Human:
                 return card
         return False
 
-    def attack(self, table):
+    def attack(self, table): # cli version
         if table:
             self.opp_cards_qty -= 1
         show_table(self.opp_cards_qty, table, self.real_deck, self.trump, self.hand)
@@ -88,14 +89,48 @@ class Human:
         can_be_added = find_to_add(self.hand, table)
         while self.hand[chosen - 1] not in can_be_added:
             print('This card cannot be added. Choose another one '
-                  'or 0 as a discards action')
+                'or 0 as a discards action')
             chosen = choose_card(len(self.hand), len(table))
             if chosen == 0:
                 return 'discards'
 
         return self.hand.pop(chosen - 1)
 
-    def defence(self, table):
+    def web_attack(self, table):
+        if table:
+            self.opp_cards_qty -= 1
+            if self.endpoint in (find_to_add(self.hand, table)) and self.endpoint in self.hand:
+                self.hand.remove(self.endpoint)
+                return True
+        else:
+            if self.endpoint in self.hand:
+                self.hand.remove(self.endpoint)
+                return True
+        return False
+          
+    def web_defence(self, table):
+        if card_bigger(self.endpoint, table[-1], self.trump) \
+            and self.endpoint in self.hand:
+            self.hand.remove(self.endpoint)
+            return True
+        return False
+
+    def web_addons(self, table):
+        
+        can_be_added = find_to_add(self.hand, table)
+        if len(self.endpoint) > len(can_be_added):
+            return False
+
+        can_be_added.sort()
+        self.endpoint.sort()
+
+        for i in range(len(self.endpoint)):
+            if self.endpoint[i] != can_be_added[i]:
+                return False
+
+        return True
+        
+    def defence(self, table): # cli version
         self.opp_cards_qty -= 1
         show_table(
             self.opp_cards_qty, table, self.real_deck, self.trump, self.hand)
@@ -113,10 +148,8 @@ class Human:
 
         return self.hand.pop(chosen - 1)
     
-    def await_defence_turn(self, table):
-        pass
-
-    def addons(self, table):
+    def addons(self, table): # cli version
+        """Cli version"""
         show_table(
             self.opp_cards_qty, table, self.real_deck, self.trump, self.hand)
         can_be_added = find_to_add(self.hand, table)
@@ -153,15 +186,20 @@ class Human:
                 print(f'Too many cards were chosen. '
                       f'Maximum qty is: {qty_to_add}')
 
-    def check_addons(self, addons):
+    def check_addons(self, addons): # cli version
         """заглушка для механизма"""
         self.known.clear()
 
-    def behavior_check(self, table):
+    def behavior_check(self, table): # cli version
         """Заглушка для механизма"""
         return None
 
-    def make_turn(self, table, defence=False):
+    def make_turn(self, table, defence=False): # cli version
         if defence:
-            return self.defence(table)
+            return self.defence(table, web=False)
         return self.attack(table)
+
+    def web_turn(self, table, defence): # web version
+        if defence:
+            return self.web_defence(table)
+        return self.web_attack(table)

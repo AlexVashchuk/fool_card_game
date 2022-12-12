@@ -1,5 +1,5 @@
 """
-Cli version of game
+Play in a cli
 """
 
 from logics.card import Card
@@ -114,50 +114,48 @@ def turn_result(_queue):
 # Game
 #########################################
 
-
-# создаем колоду
-deck = [Card(value, suit) for suit in SUITS for value in VALUES]
-
-
-# пока не убедимся что в первых 12 картах есть козырь, перемешиваем
-while not trump_search(deck):
-    shuffle(deck)
-# назначаем козыря и делаем карты козырными
-trump = deck[-1]
-make_trumps(deck, trump)
-
-# Создаем игроков и раздаем карты и сообщаем необходимую информацию игроку
-deck_to_remember = sorted(deck)
-deck_to_remember.append(deck_to_remember.pop(deck_to_remember.index(trump)))
-
-# player1 = Human('Human', deck[0:11:2], trump)
-player1 = Player('Player1', deck[0:11:2], trump, deck_to_remember)
-player2 = Player('Player2', deck[1:12:2], trump, deck_to_remember)
-print(id(player1.hand), player1.hand, id(player2.hand), player2.hand)
-del deck[0:12]
-_len = len(deck)
-player1.real_deck = player2.real_deck = _len
-
-# определяем очередность хода и создаем стол
-queue = first_turn(player1, player2, trump)
-# если игрок показал козырь для определения очередности хода, другой его может
-# запомнить
-for _ in range(2):
-    if isinstance(queue[1], Player):
-        t1 = queue[0].find_trump(trump)
-        if isinstance(t1, Card):
-            queue[1].known.append(t1)
-    queue = change_queue(queue)
-
-# инициализируем стол
-on_table = []
+if __name__ == '__main__':
+    # создаем колоду
+    deck = [Card(value, suit) for suit in SUITS for value in VALUES]
 
 
-# играем
-print(trump)
-while player1.hand and player2.hand:
-    queue = turn_result(queue)
-    if isinstance(queue[1], str):
-        print(queue[0].name, queue[1])
-        break
+    # пока не убедимся что в первых 12 картах есть козырь, перемешиваем
+    while not trump_search(deck):
+        shuffle(deck)
+    # назначаем козыря и делаем карты козырными
+    trump = deck[-1]
+    make_trumps(deck, trump)
 
+    # Создаем игроков и раздаем карты и сообщаем необходимую информацию игроку
+    deck_to_remember = sorted(deck)
+    deck_to_remember.append(deck_to_remember.pop(deck_to_remember.index(trump)))
+
+    player1 = Human('Human', deck[0:11:2], trump)
+    # player1 = Player('Player1', deck[0:11:2], trump, deck_to_remember)
+    player2 = Player('Player2', deck[1:12:2], trump, deck_to_remember)
+    print(id(player1.hand), player1.hand, id(player2.hand), player2.hand)
+    del deck[0:12]
+    _len = len(deck)
+    player1.real_deck = player2.real_deck = _len
+
+    # определяем очередность хода и создаем стол
+    queue = first_turn(player1, player2, trump)
+    # если игрок показал козырь для определения очередности хода, другой его может
+    # запомнить
+    for _ in range(2):
+        if isinstance(queue[1], Player):
+            t1 = queue[0].find_trump(trump)
+            if isinstance(t1, Card):
+                queue[1].known.append(t1)
+        queue = change_queue(queue)
+
+    # инициализируем стол
+    on_table = []
+
+
+    # играем
+    while player1.hand and player2.hand:
+        queue = turn_result(queue)
+        if isinstance(queue[1], str):
+            print(queue[0].name, queue[1])
+            break
