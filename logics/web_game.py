@@ -22,8 +22,6 @@ def images2cards(cards):
     cards = findall('\d+[-]\d+', cards)
     cards = [input_processing(card_name) for card_name in cards]
     cards = [Card(int(elem[1]), FRONT_SUITS[elem[0]]) for elem in cards]
-    print('images2cards', cards)
-    print('cards2images', cards2images(cards))
     return cards
 
 
@@ -68,7 +66,7 @@ def ui(game):
 
 
 def got_addons(game, data):
-    print(data)
+
     if data == 'Take':
         toTaker = cards2images(game.on_table)
         return {
@@ -76,8 +74,7 @@ def got_addons(game, data):
             'lastCard' : toTaker,
             'lenDeck' : len(game.deck)
         }
-    else:
-        print('endpoint', game.player1.endpoint)       
+    else:      
         game.player1.endpoint = images2cards(data)
         if ui(game):
             game.give_addons(game.player1.endpoint)
@@ -211,12 +208,7 @@ def handle_post(game, data):
         result = got_addons(game, data)
     else:
         result = switch_action(data, game)
-    print('###############')
-    print(game.player2.hand)
-    print(game.on_table)
-    print(game.player1.hand)
-    print(game.player2.limited_sequence)
-    print(game.player2.super)
+
     if len(result) == 1:
         if 'message' in result:
             return {'message' : result['message']}

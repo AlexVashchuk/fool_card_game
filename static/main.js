@@ -261,6 +261,7 @@ const sortHand = function () {
 }
 
 const newGame = function () {  
+    console.log('new game')
     fetch('/', {
         method: 'post',
         headers: {

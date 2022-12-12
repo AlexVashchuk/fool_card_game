@@ -13,10 +13,11 @@ def main():
     global game
 
     if request.method == 'POST':
-        print(request.data)
+        
         data = json.loads(request.data.decode("utf-8"))['data']
         
         if data == 'New game':
+
             game = Game('Username')
             return redirect('/', 300)
             
