@@ -4,7 +4,6 @@ const button = document.querySelector('.btn')
 const cards = []
 let call
 
-
 const behavior = function () {
     if (button.id === 'Discards' || button.id === 'Take') { call = asyncPostCall }
     if (button.id === 'Add cards') { call = makeAddons }
