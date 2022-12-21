@@ -9,9 +9,9 @@ games = {}
 
 def clear_games():
     now = int(datetime.timestamp(datetime.now()))
-    for id in games:
-        if now - games[id][1] > 600:
-            del games[id]
+    to_delete = [id for id in games if now - games[id][1] > 30]
+    for id in to_delete:
+        del games[id]
 
 @app.route("/", methods=['GET', 'POST'])
 def main():
